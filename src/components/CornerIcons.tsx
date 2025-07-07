@@ -64,7 +64,7 @@ export const CornerIcons = () => {
                         <div className="about-background absolute inset-0 bg-white">
                           {/* Decorative spheres */}
                           <div className="absolute top-1/4 left-1/4 w-48 h-48 rounded-full bg-yellow-200 opacity-90 blur-[30px]"></div>
-                          <img src="/about-bg.jpg" alt="Background" className="absolute top-0 left-0 w-full h-full object-cover" 
+                          <img src="about-bg.jpg" alt="Background" className="absolute top-0 left-0 w-full h-full object-cover" 
                           style={{
                             filter: 'blur(1.5px) grayscale(0.2) opacity(0.05)'
                           }} />
