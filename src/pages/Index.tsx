@@ -1,7 +1,7 @@
 import { Hero } from "@/components/Hero";
 import { CornerIcons } from "@/components/CornerIcons";
 import { ProjectsMarquee } from "@/components/ProjectsMarquee";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function setIconsStartLocation() {
   const titleText = document.querySelector('.title-text');
@@ -77,15 +77,24 @@ function setIconsStartLocation() {
 }
 
 const Index = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   useEffect(() => {
-    setTimeout(() => {
-      setIconsStartLocation();
-    }, 1500);
-  }, []);
+    if (imageLoaded) {
+      setTimeout(() => {
+        setIconsStartLocation();
+      }, 1750);
+    }
+  }, [imageLoaded]);
 
   return (
-    <div className="section-container bg-gray-800 pt-8 flex items-center justify-center">
-      <img src="1.png" alt="inner-curve" className="avatar absolute top-0 left-0 w-full h-full object-cover object-top" />
+    <div className={`section-container bg-gray-800 pt-8 flex items-center justify-center ${!imageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}>
+      <img 
+        src="elkhodari-portfolio/public/1.png" 
+        alt="inner-curve" 
+        className="avatar absolute top-0 left-0 w-full h-full object-cover object-top" 
+        onLoad={() => setImageLoaded(true)}
+      />
       <div className="filter-shadow">
         <div className="inner-curve bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-[1400px] relative">
           <img src="download.jpeg" alt="background" className="fixed top-0 left-0 w-full h-full object-cover object-top" />
