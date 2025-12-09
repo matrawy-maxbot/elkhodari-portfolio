@@ -330,7 +330,7 @@ section {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .inner-curve {
     --s: 120px;
     --r: 100px;
@@ -348,6 +348,12 @@ section {
   #linkedin-icon {  
     --left-direction: 120px;
     --top-direction: 200px;
+  }
+}
+
+@media (max-width: 800px) {
+  .myName {
+    display: block;
   }
 }
 

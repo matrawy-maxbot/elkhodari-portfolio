@@ -29,7 +29,7 @@ export const Hero = () => {
         {/* Left Content */}
         <div className="left-skills lg:col-span-4 space-y-6 relative z-10 animate-fade-in">          
           <div className="space-y-4">
-            <p className="text-lg text-gray-600 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">Hey, I'm <span className="text-[#a4936a] font-bold">Mohammed Elkhodari,</span></p>
+            <p className="text-lg text-gray-600 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">Hey, I'm <span className="myName text-[#a4936a] font-bold">Mohammed Elkhodari,</span></p>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight opacity-0 animate-[fadeInUp_0.8s_ease-out_0.4s_forwards]">
               A <span className="text-black">Senior</span><br />
               <span className="font-light italic text-3xl md:text-4xl">Full Stack</span><br />
