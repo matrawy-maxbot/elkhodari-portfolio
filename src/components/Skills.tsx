@@ -6,19 +6,19 @@ export const Skills = () => {
   const skillCategories = [
     {
       name: "Frontend",
-      skills: ["React", "TypeScript", "Next.js", "Tailwind CSS", "Framer Motion"]
+      skills: ["React", "TypeScript", "Next.js", "Tailwind CSS", "Skia-Canvas", "Pixi.js", "JQuery"]
     },
     {
       name: "Backend",
-      skills: ["Node.js", "Express", "Python", "Django", "GraphQL"]
+      skills: ["Node.js", "Express", "RESTful API", "WebSocket", "GraphQL"]
     },
     {
       name: "Database",
-      skills: ["PostgreSQL", "MongoDB", "Redis", "Firebase", "Supabase"]
+      skills: ["PostgreSQL", "MongoDB", "MySQL", "SQLite", "Redis"]
     },
     {
       name: "DevOps & Tools",
-      skills: ["Git", "Docker", "AWS", "CI/CD", "Vercel"]
+      skills: ["Git", "GitHub", "Docker", "AWS", "CI/CD"]
     },
     {
       name: "Design",

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link, Image, ExternalLink, Code, ShoppingCart, Briefcase, BarChart3, Layout, Globe } from "lucide-react";
+import { Link, Image, ExternalLink, Code, ShoppingCart, Briefcase, BarChart3, Layout, Globe, ZoomIn, ZoomOut } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
@@ -33,6 +33,7 @@ type Project = {
   demoUrl: string;
   codeUrl: string;
   // Additional fields for the details modal
+  imagesBasePath: string;
   images?: string[];
   features?: string[];
   icon: string;
@@ -60,6 +61,19 @@ const getIconComponent = (iconName: string) => {
   }
 };
 
+// Helper function to parse feature text with bold formatting
+const parseFeatureText = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <span key={index} className="font-bold">{boldText}</span>;
+    }
+    return part;
+  });
+};
+
 interface ProjectsProps {
   autoSelectProjectId?: number | null;
 }
@@ -76,6 +90,12 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
   const [imagesLoaded, setImagesLoaded] = useState(false);
   // State to track if mouse is hovering over active thumbnail
   const [isHoveringThumbnail, setIsHoveringThumbnail] = useState(false);
+  // State to track zoom level for the main image
+  const [zoomLevel, setZoomLevel] = useState(1);
+  // State to track image position for dragging
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   // Use projects from imported data
   const projects: Project[] = projectsData as Project[];
@@ -95,6 +115,8 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
           setProgress(0);
           stopAllTimers();
           setCurrentSlide(0);
+          setZoomLevel(1);
+          setImagePosition({ x: 0, y: 0 });
           setSelectedProject(projectToSelect);
         }, 500);
         
@@ -107,9 +129,39 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
   const handleThumbnailClick = (index: number) => {
     if (carouselApi) {
       stopAllTimers();
+      setZoomLevel(1); // Reset zoom when changing slides
+      setImagePosition({ x: 0, y: 0 }); // Reset position
       carouselApi.scrollTo(index);
       // Don't call startSlideshow here as the select event will trigger it
     }
+  };
+
+  // Handle image dragging for zoomed images
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - imagePosition.x,
+        y: e.clientY - imagePosition.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoomLevel > 1) {
+      setImagePosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
   };
 
   // Stop all timers
@@ -127,8 +179,8 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
 
   // Start the slide show with progress
   const startSlideshow = () => {
-    // If hovering over a thumbnail, don't start the slideshow
-    if (isHoveringThumbnail) {
+    // If hovering over a thumbnail or zoomed in, don't start the slideshow
+    if (isHoveringThumbnail || zoomLevel > 1) {
       return;
     }
     
@@ -213,14 +265,17 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
       const current = carouselApi.selectedScrollSnap();
       setCurrentSlide(current);
       
-      startSlideshow();
+      // Only start slideshow if not zoomed
+      if (zoomLevel <= 1) {
+        startSlideshow();
+      }
     };
     
     // Add event listener
     carouselApi.on("select", handleSlideChange);
     
-    // Start slideshow for initial slide
-    if (selectedProject.images.length > 1) {
+    // Start slideshow for initial slide only if not zoomed
+    if (selectedProject.images.length > 1 && zoomLevel <= 1) {
       startSlideshow();
     }
     
@@ -229,19 +284,33 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
       carouselApi.off("select", handleSlideChange);
       stopAllTimers();
     };
-  }, [carouselApi, selectedProject, imagesLoaded, currentSlide]);
+  }, [carouselApi, selectedProject, imagesLoaded, currentSlide, zoomLevel]);
 
   // Effect to restart slideshow when hover state changes
   useEffect(() => {
     if (carouselApi && selectedProject?.images && imagesLoaded) {
-      if (isHoveringThumbnail) {
+      if (isHoveringThumbnail || zoomLevel > 1) {
         stopAllTimers();
       } else {
         startSlideshow();
       }
     }
-  }, [isHoveringThumbnail, carouselApi, selectedProject, imagesLoaded]);
+  }, [isHoveringThumbnail, carouselApi, selectedProject, imagesLoaded, zoomLevel]);
   
+  // Reset position when zoom level changes
+  useEffect(() => {
+    if (zoomLevel === 1) {
+      setImagePosition({ x: 0, y: 0 });
+      // Re-enable slideshow when zoom is removed
+      if (selectedProject?.images && selectedProject.images.length > 1 && imagesLoaded) {
+        startSlideshow();
+      }
+    } else {
+      // Stop slideshow when zooming
+      stopAllTimers();
+    }
+  }, [zoomLevel]);
+
   // Clean up when component unmounts
   useEffect(() => {
     return () => {
@@ -305,7 +374,7 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
               </div>
               
               <div className="flex gap-3 pt-4">
-                <Button size="sm" className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0" onClick={() => window.open(project.demoUrl, '_blank')}>
+                <Button size="sm" className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={!project.demoUrl} onClick={() => project.demoUrl && window.open(project.demoUrl, '_blank')}>
                   {getIconComponent(project.icon)}
                   <span className="ml-2">Live Demo</span>
                 </Button>
@@ -318,6 +387,8 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
                     setProgress(0);
                     stopAllTimers();
                     setCurrentSlide(0);
+                    setZoomLevel(1);
+                    setImagePosition({ x: 0, y: 0 });
                     setSelectedProject(project);
                     // Let the useEffect trigger the slideshow after carousel is created
                   }}
@@ -340,6 +411,8 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
             stopAllTimers();
             setSelectedProject(null);
             setCurrentSlide(0);
+            setZoomLevel(1);
+            setImagePosition({ x: 0, y: 0 });
           } else {
             // Dialog is opening - let useEffect handle slideshow setup
             // after carouselApi is initialized
@@ -377,28 +450,62 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
             </DialogHeader>
 
             {/* Image carousel */}
-            <div className="mt-6">
+            <div className="mt-6 overflow-hidden table">
               <Carousel 
-                className="w-full" 
+                className="w-full overflow-hidden" 
                 setApi={setCarouselApi}
                 opts={{
                   align: "start",
                   loop: true,
                   skipSnaps: false,
-                  dragFree: false
+                  dragFree: false,
+                  watchDrag: zoomLevel <= 1
                 }}
               >
-                <CarouselContent>
+                <CarouselContent className="overflow-visible">
                   {selectedProject.images?.map((image, index) => (
-                    <CarouselItem key={index}>
-                      <div className="p-1">
-                        <div className="overflow-hidden rounded-xl">
+                    <CarouselItem key={index} className="basis-full">
+                      <div className="w-full">
+                        <div 
+                          className="w-full overflow-hidden rounded-xl flex items-center justify-center bg-muted/20 h-[250px] sm:h-[400px] relative group/zoom"
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseLeave}
+                          style={{ cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+                        >
                           <img 
-                            src={image} 
+                            src={selectedProject.imagesBasePath + image} 
                             alt={`${selectedProject.title} image ${index + 1}`} 
-                            className="w-full object-cover h-[300px]"
+                            className="max-w-full max-h-[250px] sm:max-h-[400px] w-auto h-auto object-contain transition-transform duration-300 select-none"
                             loading="eager" // Force eager loading of images
+                            style={{ 
+                              transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
+                              transition: isDragging ? 'none' : 'transform 0.3s'
+                            }}
+                            draggable={false}
                           />
+                          {/* Zoom controls */}
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/zoom:opacity-100 transition-opacity">
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 rounded-full shadow-lg"
+                              onClick={() => setZoomLevel(prev => Math.min(prev + 0.25, 3))}
+                              disabled={zoomLevel >= 3}
+                            >
+                              <ZoomIn className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 rounded-full shadow-lg"
+                              onClick={() => setZoomLevel(prev => Math.max(prev - 0.25, 1))}
+                              disabled={zoomLevel <= 1}
+                            >
+                              <ZoomOut className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CarouselItem>
@@ -412,6 +519,8 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
                     onClick={() => {
                       if (carouselApi) {
                         stopAllTimers();
+                        setZoomLevel(1);
+                        setImagePosition({ x: 0, y: 0 });
                         const prevIndex = (currentSlide - 1 + (selectedProject?.images?.length || 1)) % (selectedProject?.images?.length || 1);
                         carouselApi.scrollTo(prevIndex);
                       }
@@ -426,6 +535,8 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
                     onClick={() => {
                       if (carouselApi) {
                         stopAllTimers();
+                        setZoomLevel(1);
+                        setImagePosition({ x: 0, y: 0 });
                         const nextIndex = (currentSlide + 1) % (selectedProject?.images?.length || 1);
                         carouselApi.scrollTo(nextIndex);
                       }
@@ -438,11 +549,11 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
             </div>
 
             {/* Thumbnail navigation */}
-            <div className="flex overflow-x-auto gap-2 p-2 min-h-fit">
+            <div className="flex overflow-x-auto gap-2 p-2 min-h-fit scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
               {selectedProject.images?.map((image, index) => (
-                <div key={index} className="relative">
+                <div key={index} className="relative flex-shrink-0">
                   <img 
-                    src={image} 
+                    src={selectedProject.imagesBasePath + image} 
                     alt={`Thumbnail ${index + 1}`}
                     className={`h-16 w-24 object-cover rounded-md cursor-pointer transition-all outline-none focus:outline-none ${
                       currentSlide === index 
@@ -478,7 +589,9 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
               <h3 className="text-xl font-semibold mb-2">Features</h3>
               <ul className="list-disc pl-6 space-y-1">
                 {selectedProject.features?.map((feature, index) => (
-                  <li key={index} className="text-muted-foreground">{feature}</li>
+                  <li key={index} className="text-muted-foreground">
+                    {parseFeatureText(feature)}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -499,11 +612,11 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
             </div>
 
             <DialogFooter className="mt-6 flex gap-4">
-              <Button className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0" onClick={() => window.open(selectedProject.demoUrl, '_blank')}>
+              <Button className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={!selectedProject.demoUrl} onClick={() => selectedProject.demoUrl && window.open(selectedProject.demoUrl, '_blank')}>
                 {getIconComponent(selectedProject.icon)}
                 Live Demo
               </Button>
-              <Button variant="outline" className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0" onClick={() => window.open(selectedProject.codeUrl, '_blank')}>
+              <Button variant="outline" className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={!selectedProject.codeUrl} onClick={() => selectedProject.codeUrl && window.open(selectedProject.codeUrl, '_blank')}>
                 <Code className="mr-2 h-4 w-4" />
                 Source Code
               </Button>

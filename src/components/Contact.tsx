@@ -61,14 +61,37 @@ export const Contact = () => {
     }));
   };
 
+  const resumeUrl = 'elkhodari-portfolio/my_resume.pdf';
+
+  const checkIfResumeExists = async (): Promise<boolean> => {
+    try {
+      const response = await fetch(resumeUrl, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.error('error checking resume file', error);
+      return false;
+    }
+  };
+
   // Function to handle resume download
   const handleDownloadResume = async () => {
     try {
+
+      const exists = await checkIfResumeExists();
+      if (!exists) {
+        toast({
+          title: "Error",
+          description: "Resume file not found. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // إنشاء عنصر a غير مرئي للتنزيل المباشر
       const link = document.createElement('a');
-      link.href = '/my_resume.pdf';
+      link.href = resumeUrl;
       link.target = '_blank'; // فتح في نافذة جديدة
-      link.download = 'Mohammed_Elkhodari_Resume.pdf'; // اسم الملف عند التنزيل
+      link.download = resumeUrl.split('/').pop(); // اسم الملف عند التنزيل
       
       // إضافة التوقيت لتجنب الاعتراض من IDM
       const timestamp = new Date().getTime();

@@ -9,9 +9,21 @@ import { Contact } from "./Contact";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const CornerIcons = () => {
-  // Add state to control card animation
+  // Add state to control dialogs
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
-  
+  const [isProjectsDialogOpen, setIsProjectsDialogOpen] = useState(false);
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+
+  // Handlers for buttons inside About dialog
+  const handleViewProjects = () => {
+    setIsAboutDialogOpen(false);
+    setTimeout(() => setIsProjectsDialogOpen(true), 200); // Delay for smooth closing/opening
+  };
+  const handleGetInTouch = () => {
+    setIsAboutDialogOpen(false);
+    setTimeout(() => setIsContactDialogOpen(true), 200);
+  };
+
   return (
     <>
       {/* Top Left - Portfolio Text with Animation */}
@@ -31,7 +43,7 @@ export const CornerIcons = () => {
       </div>
 
       {/* Top Right - Skills & About Combined */}
-      <Dialog onOpenChange={(open) => setIsAboutDialogOpen(open)}>
+      <Dialog open={isAboutDialogOpen} onOpenChange={setIsAboutDialogOpen}>
         <DialogTrigger asChild>
           <Button
             size="icon"
@@ -109,7 +121,7 @@ export const CornerIcons = () => {
                                   <h3 className="text-5xl font-bold text-white" style={{
                                     fontFamily: "'Roboto Mono', 'DM Sans', monospace",
                                     letterSpacing: "-0.02em"
-                                  }}>50+</h3>
+                                  }}>40+</h3>
                                   <p className="text-white/80 font-medium text-base mt-1" style={{
                                     fontFamily: "'DM Sans', sans-serif",
                                     letterSpacing: "0.03em"
@@ -142,8 +154,19 @@ export const CornerIcons = () => {
                         </p>
                         
                         <div className="flex flex-wrap gap-4 pt-4 mt-8">
-                          <Button className="px-8 py-6 text-lg rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">View Projects</Button>
-                          <Button variant="outline" className="px-8 py-6 text-lg rounded-xl border-2 hover:bg-secondary/5 transition-all duration-300">Get In Touch</Button>
+                          <Button
+                            className="px-8 py-6 text-lg rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                            onClick={handleViewProjects}
+                          >
+                            View Projects
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="px-8 py-6 text-lg rounded-xl border-2 hover:bg-secondary/5 transition-all duration-300"
+                            onClick={handleGetInTouch}
+                          >
+                            Get In Touch
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -161,7 +184,7 @@ export const CornerIcons = () => {
                           <div className="bg-primary/5 p-4 rounded-xl">
                             <h3 className="font-semibold text-primary mb-3">Frontend</h3>
                             <div className="flex flex-wrap gap-2">
-                              {["JavaScript (ES6+)", "TypeScript", "React", "Next.js", "JQuery"].map((skill) => (
+                              {["JavaScript (ES6+)", "TypeScript", "React", "Next.js", "Tailwind CSS", "Skia-Canvas", "Pixi.js", "JQuery"].map((skill) => (
                                 <span key={skill} className="inline-block text-sm bg-background px-2 py-1 rounded-md">
                                   {skill}
                                 </span>
@@ -172,7 +195,7 @@ export const CornerIcons = () => {
                           <div className="bg-primary/5 p-4 rounded-xl">
                             <h3 className="font-semibold text-primary mb-3">Backend</h3>
                             <div className="flex flex-wrap gap-2">
-                              {["Node.js", "Express.js", "RESTful APIs", "GraphQL", "ORM"].map((skill) => (
+                              {["Node.js", "Express.js", "RESTful APIs", "WebSocket", "GraphQL", "ORM"].map((skill) => (
                                 <span key={skill} className="inline-block text-sm bg-background px-2 py-1 rounded-md">
                                   {skill}
                                 </span>
@@ -183,7 +206,7 @@ export const CornerIcons = () => {
                           <div className="bg-primary/5 p-4 rounded-xl">
                             <h3 className="font-semibold text-primary mb-3">Database</h3>
                             <div className="flex flex-wrap gap-2">
-                              {["PostgreSQL", "MySQL", "MongoDB", "Redis"].map((skill) => (
+                              {["PostgreSQL", "MySQL", "MongoDB", "SQLite", "Redis"].map((skill) => (
                                 <span key={skill} className="inline-block text-sm bg-background px-2 py-1 rounded-md">
                                   {skill}
                                 </span>
@@ -202,11 +225,12 @@ export const CornerIcons = () => {
       </Dialog>
 
       {/* Bottom Left - Projects */}
-      <Dialog>
+      <Dialog open={isProjectsDialogOpen} onOpenChange={setIsProjectsDialogOpen}>
         <DialogTrigger asChild>
           <Button
             size="icon"
             className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-primary/90 hover:bg-primary shadow-lg backdrop-blur-sm opacity-0 animate-[fadeInScaleTransform_0.6s_ease-out_2.2s_forwards] hover:scale-105 transition-all duration-300"
+            onClick={() => setIsProjectsDialogOpen(true)}
           >
             <Briefcase className="h-5 w-5" />
           </Button>
@@ -221,11 +245,12 @@ export const CornerIcons = () => {
       </Dialog>
 
       {/* Bottom Right - Contact */}
-      <Dialog>
+      <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
         <DialogTrigger asChild>
           <Button
             size="icon"
             className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-primary/90 hover:bg-primary shadow-lg backdrop-blur-sm opacity-0 animate-[fadeInScaleTransform_0.6s_ease-out_2.4s_forwards] hover:scale-105 transition-all duration-300"
+            onClick={() => setIsContactDialogOpen(true)}
           >
             <Mail className="h-5 w-5" />
           </Button>
