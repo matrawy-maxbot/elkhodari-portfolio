@@ -555,6 +555,7 @@ export const Projects: React.FC<ProjectsProps> = ({ autoSelectProjectId = null }
                   <img 
                     src={selectedProject.imagesBasePath + image} 
                     alt={`Thumbnail ${index + 1}`}
+                    loading="lazy"
                     className={`h-16 w-24 object-cover rounded-md cursor-pointer transition-all outline-none focus:outline-none ${
                       currentSlide === index 
                         ? "ring-2 ring-primary scale-105" 
